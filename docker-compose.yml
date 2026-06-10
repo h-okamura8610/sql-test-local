@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  vulnerable-app:
+    build: .  # 同じフォルダにあるDockerfileを使ってビルドする
+    container_name: sql-injection-demo
+    ports:
+      - "80:8080"  # EC2の80番ポートへのアクセスを、Pythonの8080番に転送する
+    restart: always

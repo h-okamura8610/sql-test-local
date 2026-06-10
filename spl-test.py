@@ -5,7 +5,7 @@ import html
 import sqlite3
 
 
-HOST = "127.0.0.1"
+HOST = "0.0.0.0"
 PORT = 8080
 DB_PATH = "demo_users.sqlite3"
 
