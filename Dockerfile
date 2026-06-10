@@ -5,7 +5,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # 3. あなたのPythonプログラム（app.py）をコンテナ内にコピー
-COPY app.py .
+COPY sql-test.py .
 
 # 4. アプリが使うポート（8080）を開放
 EXPOSE 8080
