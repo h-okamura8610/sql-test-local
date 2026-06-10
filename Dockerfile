@@ -11,4 +11,4 @@ COPY sql-test.py .
 EXPOSE 8080
 
 # 5. コンテナ起動時にプログラムを実行
-CMD ["python", "app.py"]
+CMD ["python", "sql.py"]
