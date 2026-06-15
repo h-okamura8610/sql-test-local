@@ -4,11 +4,9 @@ from urllib.parse import parse_qs
 import html
 import sqlite3
 
-
 HOST = "0.0.0.0"
 PORT = 8080
 DB_PATH = "demo_users.sqlite3"
-
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -27,7 +25,7 @@ def init_db():
         conn.executemany(
             "INSERT INTO users (username, password, display_name) VALUES (?, ?, ?)",
             [
-                ("admin", "admin123", "管理者"),
+                ("admin", "admin123", "システム管理者"),
                 ("alice", "wonderland", "Alice"),
                 ("bob", "builder", "Bob"),
             ],
@@ -36,291 +34,374 @@ def init_db():
     finally:
         conn.close()
 
-
-def page(message="", query="", username="", status=""):
+def page(message="", username="", status=""):
     escaped_message = html.escape(message)
-    escaped_query = html.escape(query)
     escaped_username = html.escape(username)
     status_class = html.escape(status or "neutral")
+    
+    # メッセージ（エラー時など）の表示ブロック
+    message_html = ""
+    if escaped_message:
+        message_html = f'<div class="message {status_class}">{escaped_message}</div>'
 
     return f"""<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SQL Injection Demo Login</title>
+  <title>ログイン - ShopEasy</title>
   <style>
     :root {{
-      color-scheme: light;
-      --bg: #f4f6f8;
-      --panel: #ffffff;
-      --ink: #18202a;
-      --muted: #667085;
-      --line: #d7dde4;
-      --accent: #2364aa;
-      --danger: #b42318;
-      --ok: #027a48;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f9fafb;
+      --text: #1f2937;
+      --border: #e5e7eb;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
       background: var(--bg);
-      color: var(--ink);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }}
+    header {{
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 1.2rem 0;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }}
+    .container {{
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }}
+    .header-inner {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }}
+    .logo {{
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+      letter-spacing: -0.5px;
     }}
     main {{
-      width: min(920px, calc(100vw - 32px));
-      display: grid;
-      grid-template-columns: minmax(280px, 380px) 1fr;
-      gap: 24px;
-      align-items: start;
+      padding: 4rem 1rem;
+      display: flex;
+      justify-content: center;
+      min-height: calc(100vh - 160px);
     }}
-    section, aside {{
-      background: var(--panel);
-      border: 1px solid var(--line);
+    .login-box {{
+      background: #ffffff;
+      padding: 2.5rem;
       border-radius: 8px;
-      box-shadow: 0 16px 40px rgba(24, 32, 42, 0.08);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      width: 100%;
+      max-width: 420px;
     }}
-    section {{ padding: 28px; }}
-    aside {{ padding: 22px; }}
     h1 {{
-      margin: 0 0 8px;
-      font-size: 26px;
-      line-height: 1.2;
-      letter-spacing: 0;
+      margin: 0 0 1.5rem;
+      font-size: 1.4rem;
+      text-align: center;
+      color: #111827;
     }}
-    h2 {{
-      margin: 0 0 12px;
-      font-size: 18px;
-      letter-spacing: 0;
+    .form-group {{
+      margin-bottom: 1.2rem;
     }}
-    p {{ margin: 0 0 18px; color: var(--muted); line-height: 1.6; }}
     label {{
       display: block;
-      margin: 18px 0 8px;
-      font-weight: 650;
-      font-size: 14px;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
     }}
-    input {{
+    input[type="text"], input[type="password"] {{
       width: 100%;
-      min-height: 44px;
-      border: 1px solid var(--line);
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
       border-radius: 6px;
-      padding: 10px 12px;
-      font-size: 16px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }}
+    input:focus {{
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }}
     button {{
       width: 100%;
-      min-height: 44px;
-      margin-top: 22px;
-      border: 0;
+      padding: 0.85rem;
+      margin-top: 0.5rem;
+      background: var(--primary);
+      color: white;
+      border: none;
       border-radius: 6px;
-      background: var(--accent);
-      color: #fff;
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
+      transition: background-color 0.2s;
     }}
-    .notice {{
-      border-left: 4px solid var(--danger);
-      background: #fff1f0;
-      color: #7a271a;
-      padding: 12px 14px;
-      border-radius: 6px;
-      margin-bottom: 20px;
-      line-height: 1.55;
+    button:hover {{
+      background: var(--primary-hover);
     }}
-    .result {{
-      margin-top: 18px;
-      padding: 12px 14px;
+    .message {{
+      padding: 0.75rem 1rem;
       border-radius: 6px;
-      border: 1px solid var(--line);
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
       line-height: 1.5;
     }}
-    .success {{ color: var(--ok); background: #ecfdf3; border-color: #abefc6; }}
-    .error {{ color: var(--danger); background: #fef3f2; border-color: #fecdca; }}
-    .neutral {{ color: var(--muted); background: #f8fafc; }}
-    code, pre {{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 13px;
+    .message.error {{
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #fecaca;
     }}
-    pre {{
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      background: #111827;
-      color: #e5e7eb;
-      padding: 14px;
-      border-radius: 6px;
-      margin: 12px 0 0;
-      min-height: 64px;
+    .message.neutral {{
+      background: #f8fafc;
+      color: #475569;
+      border: 1px solid #e2e8f0;
     }}
-    ul {{
-      margin: 0;
-      padding-left: 20px;
-      color: var(--muted);
-      line-height: 1.7;
-    }}
-    @media (max-width: 760px) {{
-      body {{ place-items: start center; padding: 20px 0; }}
-      main {{ grid-template-columns: 1fr; }}
+    footer {{
+      text-align: center;
+      padding: 2rem;
+      color: #6b7280;
+      font-size: 0.875rem;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
     }}
   </style>
 </head>
 <body>
+  <header>
+    <div class="container header-inner">
+      <a href="/" class="logo">ShopEasy</a>
+    </div>
+  </header>
   <main>
-    <section>
-      <div class="notice">
-        この画面はSQLインジェクション学習用です。ログイン処理に意図的な脆弱性があります。
-      </div>
-      <h1>脆弱なログイン画面</h1>
-      <p>通常ログイン: <code>admin</code> / <code>admin123</code></p>
+    <div class="login-box">
+      <h1>アカウントにログイン</h1>
+      {message_html}
       <form method="post" action="/login">
-        <label for="username">ユーザー名</label>
-        <input id="username" name="username" autocomplete="username" value="{escaped_username}">
-        <label for="password">パスワード</label>
-        <input id="password" name="password" type="password" autocomplete="current-password">
+        <div class="form-group">
+          <label for="username">ユーザー名 または メールアドレス</label>
+          <input type="text" id="username" name="username" value="{escaped_username}" required>
+        </div>
+        <div class="form-group">
+          <label for="password">パスワード</label>
+          <input type="password" id="password" name="password" required>
+        </div>
         <button type="submit">ログイン</button>
       </form>
-      <div class="result {status_class}">{escaped_message}</div>
-    </section>
-    <aside>
-      <h2>内部で実行されたSQL</h2>
-      <p>入力値を直接SQL文字列に埋め込んでいるため、認証条件を書き換えられます。</p>
-      <pre>{escaped_query or "まだログイン試行はありません。"}</pre>
-      <h2 style="margin-top: 24px;">教材メモ</h2>
-      <ul>
-        <li>この実装は実運用禁止です。</li>
-        <li>本来はプレースホルダ付きクエリを使います。</li>
-        <li>このサーバーはローカルホスト専用で起動します。</li>
-      </ul>
-    </aside>
+    </div>
   </main>
+  <footer>
+    &copy; 2026 ShopEasy Inc. All rights reserved.
+  </footer>
 </body>
 </html>"""
-
 
 def dashboard_page(display_name="", username=""):
     escaped_display_name = html.escape(display_name)
     escaped_username = html.escape(username)
+    
+    # ユーザー名がadminなら管理者画面、それ以外なら一般のマイページを表示
+    is_admin = (username == "admin")
+    
+    if is_admin:
+        title = "管理者ダッシュボード - ShopEasy"
+        main_content = f"""
+        <div class="admin-banner">
+          <strong>【警告】</strong> 現在システム管理者権限でログインしています。顧客情報等の取り扱いには十分注意してください。
+        </div>
+        <h2>管理者コントロールパネル</h2>
+        <div class="grid">
+          <div class="card admin-card">
+            <h3>📊 本日の売上レポート</h3>
+            <p>売上高: ¥1,240,500<br>新規注文数: 154件</p>
+            <a href="#" class="btn btn-outline">詳細レポートを開く</a>
+          </div>
+          <div class="card admin-card">
+            <h3>👥 顧客データベース</h3>
+            <p>全ユーザーの個人情報、配送先、クレジットカード情報へのアクセスと管理を行います。</p>
+            <a href="#" class="btn btn-outline" style="color: #b91c1c; border-color: #b91c1c;">DBへアクセス</a>
+          </div>
+          <div class="card admin-card">
+            <h3>⚙️ システム設定</h3>
+            <p>サイトのメンテナンスモード切替、決済ゲートウェイの設定などを変更します。</p>
+            <a href="#" class="btn btn-outline">設定を開く</a>
+          </div>
+        </div>
+        """
+    else:
+        title = "マイページ - ShopEasy"
+        main_content = f"""
+        <h2>{escaped_display_name} 様のマイページ</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>📦 最新の注文</h3>
+            <p>注文日: 先週<br>注文番号: #98234</p>
+            <p>ステータス: <span style="color: #059669; font-weight: 600;">発送済み</span></p>
+            <a href="#" class="btn btn-outline">配送状況を確認</a>
+          </div>
+          <div class="card">
+            <h3>❤️ お気に入り商品</h3>
+            <p>登録商品数: 5件</p>
+            <br>
+            <a href="#" class="btn btn-outline">リストを見る</a>
+          </div>
+          <div class="card">
+            <h3>🎫 クーポン・ポイント</h3>
+            <p>利用可能ポイント: 1,200 pt</p>
+            <p>保有クーポン: 1枚</p>
+            <a href="#" class="btn btn-outline">詳細を見る</a>
+          </div>
+        </div>
+        """
 
     return f"""<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login Complete</title>
+  <title>{title}</title>
   <style>
     :root {{
-      color-scheme: light;
-      --bg: #f4f6f8;
-      --panel: #ffffff;
-      --ink: #18202a;
-      --muted: #667085;
-      --line: #d7dde4;
-      --accent: #2364aa;
-      --ok: #027a48;
+      --primary: #2563eb;
+      --admin-color: #dc2626;
+      --bg: #f9fafb;
+      --text: #1f2937;
+      --border: #e5e7eb;
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
       background: var(--bg);
-      color: var(--ink);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }}
-    main {{
-      width: min(720px, calc(100vw - 32px));
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: 0 16px 40px rgba(24, 32, 42, 0.08);
-      padding: 32px;
+    header {{
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 1.2rem 0;
     }}
-    h1 {{
-      margin: 0 0 10px;
-      font-size: 28px;
-      line-height: 1.2;
-      letter-spacing: 0;
+    .container {{
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 1rem;
     }}
-    p {{
-      margin: 0 0 18px;
-      color: var(--muted);
-      line-height: 1.65;
-    }}
-    .badge {{
-      display: inline-block;
-      margin-bottom: 18px;
-      padding: 8px 10px;
-      border-radius: 6px;
-      background: #ecfdf3;
-      color: var(--ok);
-      font-weight: 700;
-    }}
-    dl {{
-      display: grid;
-      grid-template-columns: 120px 1fr;
-      gap: 10px 16px;
-      margin: 24px 0;
-      padding: 18px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #f8fafc;
-    }}
-    dt {{ color: var(--muted); }}
-    dd {{ margin: 0; font-weight: 700; }}
-    a, button {{
-      min-height: 42px;
-      border-radius: 6px;
-      font-size: 15px;
-      font-weight: 700;
-    }}
-    a {{
-      display: inline-flex;
+    .header-inner {{
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      padding: 0 16px;
-      color: #fff;
-      background: var(--accent);
+    }}
+    .logo {{
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
       text-decoration: none;
+      letter-spacing: -0.5px;
     }}
-    form {{ display: inline; margin-left: 8px; }}
-    button {{
-      border: 1px solid var(--line);
-      padding: 0 16px;
+    main {{ padding: 2.5rem 1rem; min-height: calc(100vh - 160px); }}
+    h2 {{ 
+      margin-top: 0; 
+      font-size: 1.5rem; 
+      border-bottom: 2px solid var(--border); 
+      padding-bottom: 0.8rem; 
+      margin-bottom: 1.5rem; 
+    }}
+    .admin-banner {{
+      background: #fef2f2;
+      border-left: 4px solid var(--admin-color);
+      color: #991b1b;
+      padding: 1rem 1.2rem;
+      margin-bottom: 2rem;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }}
+    .grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }}
+    .card {{
       background: #fff;
-      color: var(--ink);
-      cursor: pointer;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }}
-    @media (max-width: 560px) {{
-      body {{ place-items: start center; padding: 20px 0; }}
-      main {{ padding: 24px; }}
-      dl {{ grid-template-columns: 1fr; }}
-      form {{ display: block; margin: 10px 0 0; }}
-      a, button {{ width: 100%; }}
+    .admin-card {{ 
+      border-top: 4px solid var(--admin-color); 
+    }}
+    .card h3 {{ margin: 0 0 1rem; font-size: 1.1rem; color: #111827; }}
+    .card p {{ color: #4b5563; line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem; }}
+    .btn {{
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }}
+    .btn-outline {{
+      border: 1px solid #d1d5db;
+      color: #374151;
+      background: #fff;
+    }}
+    .btn-outline:hover {{ 
+      background: #f3f4f6; 
+      border-color: #9ca3af;
+    }}
+    .logout-btn {{
+      background: transparent;
+      border: 1px solid #d1d5db;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }}
+    .logout-btn:hover {{ background: #f3f4f6; }}
+    .user-menu {{ display: flex; align-items: center; gap: 1.5rem; }}
+    .user-name {{ font-weight: 600; font-size: 0.95rem; color: #374151; }}
+    footer {{ 
+      text-align: center; 
+      padding: 2rem; 
+      color: #6b7280; 
+      font-size: 0.875rem; 
+      background: #fff; 
+      border-top: 1px solid var(--border); 
     }}
   </style>
 </head>
 <body>
-  <main>
-    <div class="badge">ログイン済み</div>
-    <h1>ログイン後の画面</h1>
-    <p>認証に成功したため、ログインページからこの画面へ遷移しました。</p>
-    <dl>
-      <dt>表示名</dt>
-      <dd>{escaped_display_name}</dd>
-      <dt>ユーザー名</dt>
-      <dd>{escaped_username}</dd>
-    </dl>
-    <a href="/">ログイン画面へ戻る</a>
-    <form method="post" action="/logout">
-      <button type="submit">ログアウト</button>
-    </form>
+  <header>
+    <div class="container header-inner">
+      <a href="/dashboard" class="logo">ShopEasy</a>
+      <div class="user-menu">
+        <span class="user-name">{escaped_display_name} 様</span>
+        <form method="post" action="/logout" style="margin:0;">
+          <button type="submit" class="logout-btn">ログアウト</button>
+        </form>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    {main_content}
   </main>
+  <footer>
+    &copy; 2026 ShopEasy Inc. All rights reserved.
+  </footer>
 </body>
 </html>"""
 
@@ -350,7 +431,7 @@ def get_logged_in_user(headers):
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/":
-            self.respond(page(message="ログイン情報を入力してください。", status="neutral"))
+            self.respond(page())
             return
 
         if self.path == "/dashboard":
@@ -380,7 +461,7 @@ class Handler(BaseHTTPRequestHandler):
         username = form.get("username", [""])[0]
         password = form.get("password", [""])[0]
 
-        # Intentionally vulnerable: direct string interpolation allows SQL injection.
+        # 意図的な脆弱性：直接文字列を埋め込んでいるためSQLインジェクションが可能
         query = (
             "SELECT id, username, display_name FROM users "
             f"WHERE username = '{username}' AND password = '{password}'"
@@ -389,9 +470,9 @@ class Handler(BaseHTTPRequestHandler):
         conn = sqlite3.connect(DB_PATH)
         try:
             row = conn.execute(query).fetchone()
-        except sqlite3.Error as exc:
-            message = f"SQLエラー: {exc}"
-            self.respond(page(message=message, query=query, username=username, status="error"))
+        except sqlite3.Error:
+            # エラーの詳細（SQL文など）は出力せず、一般的なエラーメッセージを返す
+            self.respond(page(message="システムエラーが発生しました。時間を置いて再度お試しください。", username=username, status="error"))
             return
         finally:
             conn.close()
@@ -406,10 +487,7 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if not row:
-            message = "ログイン失敗: ユーザー名またはパスワードが違います。"
-            status = "error"
-
-        self.respond(page(message=message, query=query, username=username, status=status))
+            self.respond(page(message="ログインに失敗しました。ユーザー名またはパスワードが違います。", username=username, status="error"))
 
     def redirect(self, location, cookies=None, clear_cookie=False):
         self.send_response(303)
@@ -442,6 +520,6 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     init_db()
     server = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"SQL injection demo running at http://{HOST}:{PORT}")
+    print(f"Server running at http://{HOST}:{PORT}")
     print("Stop with Ctrl+C")
     server.serve_forever()
