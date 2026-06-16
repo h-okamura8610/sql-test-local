@@ -51,12 +51,12 @@ def page(message="", username="", status=""):
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ログイン - ShopEasy</title>
+  <title>ログイン - MuscleMart (プロテイン・筋トレ器具専門店)</title>
   <style>
     :root {{
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --bg: #f9fafb;
+      --primary: #ea580c; /* フィットネスらしいオレンジに変更 */
+      --primary-hover: #c2410c;
+      --bg: #f3f4f6;
       --text: #1f2937;
       --border: #e5e7eb;
       --danger: #ef4444;
@@ -70,10 +70,9 @@ def page(message="", username="", status=""):
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }}
     header {{
-      background: #ffffff;
-      border-bottom: 1px solid var(--border);
+      background: #111827; /* 力強いダークなヘッダー */
       padding: 1.2rem 0;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }}
     .container {{
       max-width: 1000px;
@@ -86,11 +85,16 @@ def page(message="", username="", status=""):
       align-items: center;
     }}
     .logo {{
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--primary);
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #ffffff;
       text-decoration: none;
-      letter-spacing: -0.5px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-style: italic;
+    }}
+    .logo span {{
+      color: var(--primary);
     }}
     main {{
       padding: 4rem 1rem;
@@ -102,15 +106,17 @@ def page(message="", username="", status=""):
       background: #ffffff;
       padding: 2.5rem;
       border-radius: 8px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
       width: 100%;
       max-width: 420px;
+      border-top: 5px solid var(--primary);
     }}
     h1 {{
       margin: 0 0 1.5rem;
       font-size: 1.4rem;
       text-align: center;
       color: #111827;
+      font-weight: 800;
     }}
     .form-group {{
       margin-bottom: 1.2rem;
@@ -119,13 +125,13 @@ def page(message="", username="", status=""):
       display: block;
       margin-bottom: 0.5rem;
       font-size: 0.9rem;
-      font-weight: 600;
+      font-weight: 700;
       color: #374151;
     }}
     input[type="text"], input[type="password"] {{
       width: 100%;
       padding: 0.75rem;
-      border: 1px solid #d1d5db;
+      border: 2px solid #e5e7eb;
       border-radius: 6px;
       font-size: 1rem;
       transition: border-color 0.2s;
@@ -133,20 +139,21 @@ def page(message="", username="", status=""):
     input:focus {{
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }}
     button {{
       width: 100%;
       padding: 0.85rem;
-      margin-top: 0.5rem;
+      margin-top: 1rem;
       background: var(--primary);
       color: white;
       border: none;
       border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 1.1rem;
+      font-weight: 800;
       cursor: pointer;
       transition: background-color 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }}
     button:hover {{
       background: var(--primary-hover);
@@ -157,6 +164,7 @@ def page(message="", username="", status=""):
       margin-bottom: 1.5rem;
       font-size: 0.9rem;
       line-height: 1.5;
+      font-weight: 600;
     }}
     .message.error {{
       background: var(--danger-bg);
@@ -171,22 +179,21 @@ def page(message="", username="", status=""):
     footer {{
       text-align: center;
       padding: 2rem;
-      color: #6b7280;
+      color: #9ca3af;
       font-size: 0.875rem;
-      background: #ffffff;
-      border-top: 1px solid var(--border);
+      background: #111827;
     }}
   </style>
 </head>
 <body>
   <header>
     <div class="container header-inner">
-      <a href="/" class="logo">ShopEasy</a>
+      <a href="/" class="logo">Muscle<span>Mart</span></a>
     </div>
   </header>
   <main>
     <div class="login-box">
-      <h1>アカウントにログイン</h1>
+      <h1>メンバーログイン</h1>
       {message_html}
       <form method="post" action="/login">
         <div class="form-group">
@@ -202,7 +209,7 @@ def page(message="", username="", status=""):
     </div>
   </main>
   <footer>
-    &copy; 2026 ShopEasy Inc. All rights reserved.
+    &copy; 2026 MuscleMart Inc. All rights reserved.
   </footer>
 </body>
 </html>"""
@@ -215,52 +222,74 @@ def dashboard_page(display_name="", username=""):
     is_admin = (username == "admin")
     
     if is_admin:
-        title = "管理者ダッシュボード - ShopEasy"
+        title = "管理者ダッシュボード - MuscleMart"
         main_content = f"""
         <div class="admin-banner">
-          <strong>【警告】</strong> 現在システム管理者権限でログインしています。顧客情報等の取り扱いには十分注意してください。
+          <strong>【警告】</strong> 現在システム管理者権限でログインしています。顧客情報の閲覧・編集、在庫データの変更が可能です。
         </div>
         <h2>管理者コントロールパネル</h2>
         <div class="grid">
           <div class="card admin-card">
-            <h3>📊 本日の売上レポート</h3>
-            <p>売上高: ¥1,240,500<br>新規注文数: 154件</p>
+            <h3>📊 器具・プロテイン売上レポート</h3>
+            <p>本日の売上高: ¥2,450,000<br>一番売れている商品: ホエイプロテイン WPI 1kg</p>
             <a href="#" class="btn btn-outline">詳細レポートを開く</a>
           </div>
           <div class="card admin-card">
-            <h3>👥 顧客データベース</h3>
-            <p>全ユーザーの個人情報、配送先、クレジットカード情報へのアクセスと管理を行います。</p>
+            <h3>👥 メンバーデータベース</h3>
+            <p>全トレーニーの個人情報、配送先、クレジットカード情報へのアクセスと管理を行います。</p>
             <a href="#" class="btn btn-outline" style="color: #b91c1c; border-color: #b91c1c;">DBへアクセス</a>
           </div>
           <div class="card admin-card">
-            <h3>⚙️ システム設定</h3>
-            <p>サイトのメンテナンスモード切替、決済ゲートウェイの設定などを変更します。</p>
-            <a href="#" class="btn btn-outline">設定を開く</a>
+            <h3>📦 在庫管理アラート</h3>
+            <p style="color: #ea580c; font-weight: bold;">⚠️ アジャスタブルダンベル 32kg の在庫が残り3セットです。</p>
+            <a href="#" class="btn btn-outline">発注システムを開く</a>
           </div>
         </div>
         """
     else:
-        title = "マイページ - ShopEasy"
+        title = "ショッピング・マイページ - MuscleMart"
         main_content = f"""
-        <h2>{escaped_display_name} 様のマイページ</h2>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.8rem;">
+          <h2 style="margin: 0; border: none; padding: 0;">{escaped_display_name} 様のマイページ</h2>
+          <span style="font-weight: 600; color: #ea580c;">保有マッスルポイント: 3,500 pt</span>
+        </div>
+        
+        <h3 style="margin-bottom: 1rem; color: #111827; font-size: 1.3rem;">🔥 今週のイチオシ商品</h3>
         <div class="grid">
-          <div class="card">
-            <h3>📦 最新の注文</h3>
-            <p>注文日: 先週<br>注文番号: #98234</p>
-            <p>ステータス: <span style="color: #059669; font-weight: 600;">発送済み</span></p>
-            <a href="#" class="btn btn-outline">配送状況を確認</a>
+          <!-- プロテイン -->
+          <div class="card product-card">
+            <div class="emoji-img">🥤</div>
+            <h3>ホエイプロテイン WPI 1kg (ダブルリッチチョコレート味)</h3>
+            <p>高純度のWPIを採用。吸収速度に優れ、激しいトレーニング後のタンパク質補給に最適です。</p>
+            <div class="price">¥4,980</div>
+            <button class="btn-primary">カートに入れる</button>
           </div>
-          <div class="card">
-            <h3>❤️ お気に入り商品</h3>
-            <p>登録商品数: 5件</p>
-            <br>
-            <a href="#" class="btn btn-outline">リストを見る</a>
+
+          <!-- ダンベル -->
+          <div class="card product-card">
+            <div class="emoji-img">🏋️‍♂️</div>
+            <h3>アジャスタブルダンベル 32kg × 2個セット</h3>
+            <p>ダイヤルを回すだけで2kg〜32kgまで簡単に重量変更が可能。ホームジムの必須アイテム。</p>
+            <div class="price">¥34,800</div>
+            <button class="btn-primary">カートに入れる</button>
           </div>
-          <div class="card">
-            <h3>🎫 クーポン・ポイント</h3>
-            <p>利用可能ポイント: 1,200 pt</p>
-            <p>保有クーポン: 1枚</p>
-            <a href="#" class="btn btn-outline">詳細を見る</a>
+
+          <!-- マシン/ラック -->
+          <div class="card product-card">
+            <div class="emoji-img">🏗️</div>
+            <h3>ハーフラック スタンダードモデル (耐荷重300kg)</h3>
+            <p>スクワット、ベンチプレスなどビッグ3に完全対応。極太フレームで安定感抜群のラックです。</p>
+            <div class="price">¥89,000</div>
+            <button class="btn-primary">大型配送・カートに入れる</button>
+          </div>
+          
+          <!-- アクセサリー -->
+          <div class="card product-card">
+            <div class="emoji-img">🧤</div>
+            <h3>本革パワーグリップ PRO</h3>
+            <p>デッドリフトや懸垂時の握力サポートに。背中トレの質を劇的に向上させるマストアイテム。</p>
+            <div class="price">¥6,500</div>
+            <button class="btn-primary">カートに入れる</button>
           </div>
         </div>
         """
@@ -273,7 +302,8 @@ def dashboard_page(display_name="", username=""):
   <title>{title}</title>
   <style>
     :root {{
-      --primary: #2563eb;
+      --primary: #ea580c;
+      --primary-hover: #c2410c;
       --admin-color: #dc2626;
       --bg: #f9fafb;
       --text: #1f2937;
@@ -287,9 +317,8 @@ def dashboard_page(display_name="", username=""):
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }}
     header {{
-      background: #ffffff;
-      border-bottom: 1px solid var(--border);
-      padding: 1.2rem 0;
+      background: #111827;
+      padding: 1rem 0;
     }}
     .container {{
       max-width: 1000px;
@@ -303,19 +332,16 @@ def dashboard_page(display_name="", username=""):
     }}
     .logo {{
       font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--primary);
+      font-weight: 900;
+      color: #ffffff;
       text-decoration: none;
-      letter-spacing: -0.5px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-style: italic;
     }}
+    .logo span {{ color: var(--primary); }}
     main {{ padding: 2.5rem 1rem; min-height: calc(100vh - 160px); }}
-    h2 {{ 
-      margin-top: 0; 
-      font-size: 1.5rem; 
-      border-bottom: 2px solid var(--border); 
-      padding-bottom: 0.8rem; 
-      margin-bottom: 1.5rem; 
-    }}
+    
     .admin-banner {{
       background: #fef2f2;
       border-left: 4px solid var(--admin-color);
@@ -324,10 +350,11 @@ def dashboard_page(display_name="", username=""):
       margin-bottom: 2rem;
       border-radius: 4px;
       font-size: 0.95rem;
+      font-weight: bold;
     }}
     .grid {{
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 1.5rem;
     }}
     .card {{
@@ -335,13 +362,53 @@ def dashboard_page(display_name="", username=""):
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 1.5rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
     }}
     .admin-card {{ 
       border-top: 4px solid var(--admin-color); 
     }}
-    .card h3 {{ margin: 0 0 1rem; font-size: 1.1rem; color: #111827; }}
-    .card p {{ color: #4b5563; line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem; }}
+    .product-card {{
+      transition: transform 0.2s, box-shadow 0.2s;
+    }}
+    .product-card:hover {{
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }}
+    .emoji-img {{
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      background: #f3f4f6;
+      border-radius: 8px;
+      padding: 1rem;
+    }}
+    .card h3 {{ margin: 0 0 1rem; font-size: 1.1rem; color: #111827; line-height: 1.4; }}
+    .card p {{ color: #4b5563; line-height: 1.6; margin-bottom: 1rem; font-size: 0.9rem; flex-grow: 1; }}
+    
+    .price {{
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #b91c1c;
+      margin-bottom: 1rem;
+    }}
+    
+    .btn-primary {{
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.8rem 1rem;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      width: 100%;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }}
+    .btn-primary:hover {{ background: var(--primary-hover); }}
+    
     .btn {{
       display: inline-block;
       padding: 0.5rem 1rem;
@@ -362,34 +429,35 @@ def dashboard_page(display_name="", username=""):
       background: #f3f4f6; 
       border-color: #9ca3af;
     }}
+    
     .logout-btn {{
       background: transparent;
-      border: 1px solid #d1d5db;
+      border: 1px solid #4b5563;
       padding: 0.4rem 1rem;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
-      color: #374151;
+      color: #d1d5db;
       font-size: 0.85rem;
-      transition: background 0.2s;
+      transition: all 0.2s;
     }}
-    .logout-btn:hover {{ background: #f3f4f6; }}
+    .logout-btn:hover {{ background: #374151; color: #fff; }}
     .user-menu {{ display: flex; align-items: center; gap: 1.5rem; }}
-    .user-name {{ font-weight: 600; font-size: 0.95rem; color: #374151; }}
+    .user-name {{ font-weight: 600; font-size: 0.95rem; color: #f9fafb; }}
     footer {{ 
       text-align: center; 
       padding: 2rem; 
-      color: #6b7280; 
+      color: #9ca3af; 
       font-size: 0.875rem; 
-      background: #fff; 
-      border-top: 1px solid var(--border); 
+      background: #111827; 
+      border-top: 1px solid #374151; 
     }}
   </style>
 </head>
 <body>
   <header>
     <div class="container header-inner">
-      <a href="/dashboard" class="logo">ShopEasy</a>
+      <a href="/dashboard" class="logo">Muscle<span>Mart</span></a>
       <div class="user-menu">
         <span class="user-name">{escaped_display_name} 様</span>
         <form method="post" action="/logout" style="margin:0;">
@@ -402,7 +470,7 @@ def dashboard_page(display_name="", username=""):
     {main_content}
   </main>
   <footer>
-    &copy; 2026 ShopEasy Inc. All rights reserved.
+    &copy; 2026 MuscleMart Inc. All rights reserved.
   </footer>
 </body>
 </html>"""
